@@ -48,7 +48,7 @@ void release_bus() {
   delay(2);
 }
 
-void write_mem(uint16_t start_addr, uint8_t buf, uintptr_t offset, uintptr_t size) {
+void write_mem(uint16_t start_addr, uint8_t buf[], uintptr_t offset, uintptr_t size) {
   if (!has_bus_control) {
     Serial.println("Tried to write memory without acquiring bus!");
     return;
@@ -63,7 +63,7 @@ void write_mem(uint16_t start_addr, uint8_t buf, uintptr_t offset, uintptr_t siz
     delay(1);
 #endif
     
-    PORTC = addr & 0xFF;
+    PORTC = buf[offset + i];
 
 #ifdef MEM_WRITE_DELAY
     delay(1);
@@ -264,7 +264,12 @@ void loop() {
   checksum_total += checksum_byte;
 
   if (checksum_total != 0) {
-    Serial.println("ERROR Checksum invalid, resetting");
+    Serial.print("ERROR Checksum invalid ");
+    uint8_t checksum = checksum_total - checksum_byte;
+    Serial.print(checksum, HEX);
+    Serial.print(" should be ");
+    Serial.print((uint8_t)(256 - checksum), HEX);
+    Serial.println(", resetting");
     return;
   }
 
