@@ -273,6 +273,12 @@ void loop() {
     return;
   }
 
+  int commit_byte = read_robust();
+  if (commit_byte != '\n') {
+    Serial.println("ERROR Didn't receive commit byte (EOL), resetting\n");
+    return;
+  }
+
   Serial.println("INFO Writing memory");
 
   acquire_bus();
