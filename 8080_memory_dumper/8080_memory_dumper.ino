@@ -13,6 +13,7 @@
 uint8_t *data_buffer = nullptr;
 bool has_bus_control = false;
 
+
 void acquire_bus() {
   DDRC = 0;
   DDRA = 0;
@@ -166,6 +167,8 @@ int read_hex_byte() {
 void loop() {
   delay(100);
 
+  uint8_t checksum_total = 0;
+
   if (Serial.available() > 0) {
     Serial.println("WARN Clearing unknown data from serial buffer.");
   }
@@ -197,6 +200,8 @@ void loop() {
     return;
   }
 
+  checksum_total += (uint8_t) byte_count;
+
   int start_addr_high = read_hex_byte();
   if (start_addr_high == -1) {
     Serial.println("ERROR Didn't receive high address byte, resetting");
@@ -207,6 +212,8 @@ void loop() {
     return;
   }
 
+  checksum_total += (uint8_t) start_addr_high;
+
   int start_addr_low = read_hex_byte();
   if (start_addr_low == -1) {
     Serial.println("ERROR Didn't receive high address byte, resetting");
@@ -216,6 +223,8 @@ void loop() {
     Serial.println("ERROR Received invalid hex for high address byte, resetting");
     return;
   }
+
+  checksum_total += (uint8_t) start_addr_low;
 
   uint16_t start_addr = ((start_addr_high & 0xFF) << 8) + (start_addr_low & 0xFF);
 
@@ -234,7 +243,7 @@ void loop() {
     return;
   }
 
-  uint8_t checksum_total = 0;
+  checksum_total += (uint8_t) record_type;
 
   for (int i = 0; i < byte_count; i++) {
     int cur_byte = read_hex_byte();
